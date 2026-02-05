@@ -16,9 +16,6 @@
             background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         .container {
@@ -28,6 +25,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
+            margin: 20px auto;
         }
 
         .header {
@@ -99,9 +97,10 @@
             font-size: 1.2em;
             color: #666;
             font-weight: 600;
+            pointer-events: none;
         }
 
-        .input-wrapper input[type="number"] {
+        .input-wrapper input.with-currency {
             padding-left: 45px;
         }
 
@@ -111,9 +110,10 @@
             font-size: 1.2em;
             color: #666;
             font-weight: 600;
+            pointer-events: none;
         }
 
-        .input-wrapper input.has-percent {
+        .input-wrapper input.with-percent {
             padding-right: 45px;
         }
 
@@ -126,12 +126,581 @@
 
         /* ESTILOS PARA OPCIONES DE BANCO */
         .bank-options {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 15px;
             margin-bottom: 15px;
-            flex-wrap: wrap;
         }
 
         .bank-option {
+            padding: 15px 20px;
+            background: white;
+            border: 3px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .bank-option:hover {
+            border-color: #d4af37;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .bank-option.active {
+            border-color: #1a365d;
+            background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(26, 54, 93, 0.3);
+        }
+
+        .bank-option .rate {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .bank-option .label {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .bank-option.active .label {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        .custom-rate-wrapper {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px dashed #d4af37;
+        }
+
+        .custom-rate-wrapper.show {
+            display: block;
+        }
+
+        .custom-rate-wrapper label {
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #d4af37 0%, #f1d877 100%);
+            color: #1a365d;
+            font-size: 1.3em;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        .results {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #1a365d, #d4af37);
+        }
+
+        .result-card.bank::before {
+            background: #dc3545;
+        }
+
+        .result-card.iul::before {
+            background: #28a745;
+        }
+
+        .result-card.gap::before {
+            background: linear-gradient(90deg, #d4af37, #f1d877);
+        }
+
+        .result-label {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .result-amount {
+            font-size: 2.8em;
+            font-weight: 700;
+            color: #1a365d;
+            margin: 10px 0;
+        }
+
+        .result-card.bank .result-amount {
+            color: #dc3545;
+        }
+
+        .result-card.iul .result-amount {
+            color: #28a745;
+        }
+
+        .result-card.gap .result-amount {
+            color: #d4af37;
+        }
+
+        .result-description {
+            font-size: 0.95em;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .bar-wrapper {
             flex: 1;
-            min-width: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 10px;
+        }
+
+        .bar {
+            width: 100%;
+            max-width: 150px;
+            background: linear-gradient(180deg, #d4af37 0%, #f1d877 100%);
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            transition: all 0.5s ease;
+            box-shadow: 0 -5px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .bar.bank {
+            background: linear-gradient(180deg, #dc3545 0%, #ff6b7a 100%);
+            box-shadow: 0 -5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .bar.iul {
+            background: linear-gradient(180deg, #28a745 0%, #48d96d 100%);
+            box-shadow: 0 -5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 700;
+            font-size: 1.1em;
+            white-space: nowrap;
+        }
+
+        .bar-label {
+            margin-top: 15px;
+            font-weight: 600;
+            color: #1a365d;
+            text-align: center;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border-left: 5px solid #d4af37;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .insight-box h3 {
+            color: #1a365d;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .insight-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .insight-box li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .insight-box li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: 700;
+            font-size: 1.3em;
+        }
+
+        .warning-text {
+            background: #fff;
+            border: 2px solid #dc3545;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .warning-text strong {
+            color: #dc3545;
+            font-size: 1.3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-amount {
+                font-size: 2em;
+            }
+
+            .bar-chart {
+                height: 250px;
+            }
+
+            .bank-options {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Calculadora Universitaria: Banco vs IUL</h1>
+            <p>Descubre cuánto dinero estás dejando de ganar al ahorrar para la universidad de tus hijos en el lugar equivocado</p>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="monthly">💵 Aporte Mensual para la Universidad</label>
+                    <div class="input-wrapper">
+                        <span class="currency">$</span>
+                        <input type="number" id="monthly" class="with-currency" value="500" min="50" step="50">
+                    </div>
+                    <div class="input-info">¿Cuánto dinero apartas cada mes para el futuro universitario de tu hijo?</div>
+                </div>
+
+                <div class="input-group">
+                    <label>🏦 Tasa de Interés del Banco (Anual)</label>
+                    <div class="bank-options">
+                        <div class="bank-option" onclick="selectBankRate(0.01)">
+                            <div class="rate">0.01%</div>
+                            <div class="label">Cuentas básicas</div>
+                        </div>
+                        <div class="bank-option active" onclick="selectBankRate(0.5)">
+                            <div class="rate">0.5%</div>
+                            <div class="label">Cuentas promedio</div>
+                        </div>
+                        <div class="bank-option" onclick="selectBankRate(1.0)">
+                            <div class="rate">1.0%</div>
+                            <div class="label">Cuentas "premium"</div>
+                        </div>
+                        <div class="bank-option" onclick="selectBankRate('custom')">
+                            <div class="rate">✏️</div>
+                            <div class="label">Personalizado</div>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-rate-wrapper" id="customRateWrapper">
+                        <label>Ingresa tu tasa personalizada:</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="customBankRate" class="with-percent" value="0.5" min="0" max="5" step="0.01">
+                            <span class="percent">%</span>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="bankRate" value="0.5">
+                    <div class="input-info">La triste realidad: la mayoría de cuentas de ahorro pagan entre 0.01% y 1%</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="iulRate">📈 Tasa de Crecimiento del IUL (Anual)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="iulRate" class="with-percent" value="6" min="4" max="10" step="0.5">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="input-info">Promedio conservador del IUL (con piso de 0% en años malos)</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="years">⏳ Años hasta que tu hijo entre a la Universidad</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="years" value="18" min="1" max="25" step="1">
+                    </div>
+                    <div class="input-info">Desde hoy hasta que cumpla 18 años (o la edad que planeas)</div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculate()">🔍 CALCULAR MI PÉRDIDA</button>
+            </div>
+
+            <div class="results" id="results">
+                <div class="comparison-grid">
+                    <div class="result-card bank">
+                        <div class="result-label">🏦 Total en Cuenta de Banco</div>
+                        <div class="result-amount" id="bankTotal">$0</div>
+                        <div class="result-description">Casi el mismo dinero que pusiste, sin crecimiento real</div>
+                    </div>
+
+                    <div class="result-card iul">
+                        <div class="result-label">📈 Total en IUL</div>
+                        <div class="result-amount" id="iulTotal">$0</div>
+                        <div class="result-description">El poder del crecimiento compuesto protegido</div>
+                    </div>
+
+                    <div class="result-card gap">
+                        <div class="result-label">⚠️ DINERO QUE ESTÁS PERDIENDO</div>
+                        <div class="result-amount" id="gapAmount">$0</div>
+                        <div class="result-description">Por ahorrar en el lugar equivocado</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 style="text-align: center; color: #1a365d; margin-bottom: 10px;">Comparación Visual a los <span id="yearsDisplay">18</span> años</h3>
+                    <div class="bar-chart">
+                        <div class="bar-wrapper">
+                            <div class="bar bank" id="bankBar" style="height: 0%">
+                                <div class="bar-value" id="bankBarValue">$0</div>
+                            </div>
+                            <div class="bar-label">Banco<br>(<span id="bankRateDisplay">0.5</span>% promedio)</div>
+                        </div>
+                        <div class="bar-wrapper">
+                            <div class="bar iul" id="iulBar" style="height: 0%">
+                                <div class="bar-value" id="iulBarValue">$0</div>
+                            </div>
+                            <div class="bar-label">IUL<br>(6% promedio)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-text">
+                    <strong>🚨 ¡Estás dejando de ganar <span id="gapWarning">$0</span>!</strong>
+                    <p>Ese dinero podría pagar años completos de universidad, pero se está evaporando en una cuenta bancaria que apenas crece.</p>
+                </div>
+
+                <div class="insight-box">
+                    <h3>✨ Ventajas adicionales del IUL para universidad:</h3>
+                    <ul>
+                        <li><strong>NO afecta las becas FAFSA:</strong> A diferencia de ahorros bancarios que cuentan como "activo del estudiante" (reducen elegibilidad para ayuda financiera en hasta 20%), el valor en efectivo del IUL generalmente NO se reporta en FAFSA.</li>
+                        <li><strong>Acceso flexible:</strong> Puedes tomar préstamos del IUL para pagar universidad sin penalidades ni impuestos (vs. 529 plans que penalizan gastos no educativos).</li>
+                        <li><strong>Tu dinero sigue creciendo:</strong> Incluso cuando tomas préstamos para universidad, tu valor en efectivo base continúa creciendo.</li>
+                        <li><strong>Protección familiar:</strong> Si algo te pasa antes de que tu hijo vaya a universidad, el beneficio por muerte garantiza que tendrá el dinero completo.</li>
+                        <li><strong>Piso de 0%:</strong> Nunca pierdes dinero en años malos del mercado (algo que SÍ pasa con 529 plans invertidos en acciones).</li>
+                        <li><strong>Sin restricciones de uso:</strong> Si tu hijo obtiene beca completa o decide no ir a universidad, el dinero sigue siendo tuyo sin penalidades (vs. 529 que penaliza con 10% + impuestos en usos no educativos).</li>
+                    </ul>
+                </div>
+
+                <div class="insight-box" style="background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); border-left-color: #17a2b8;">
+                    <h3>📊 Desglose de tus aportes:</h3>
+                    <ul>
+                        <li>Total que aportarás en <span id="yearsText">18</span> años: <strong id="totalContributed">$0</strong></li>
+                        <li>Interés ganado en Banco: <strong style="color: #dc3545;" id="bankInterest">$0</strong> (prácticamente nada)</li>
+                        <li>Ganancia en IUL: <strong style="color: #28a745;" id="iulGain">$0</strong> (crecimiento compuesto)</li>
+                        <li>Diferencia pura: <strong style="color: #d4af37;" id="pureDiff">$0</strong> más en tu bolsillo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentBankRate = 0.5;
+
+        function formatCurrency(amount) {
+            return '$' + Math.round(amount).toLocaleString('en-US');
+        }
+
+        function selectBankRate(rate) {
+            // Remover clase active de todos
+            const options = document.querySelectorAll('.bank-option');
+            options.forEach(option => {
+                option.classList.remove('active');
+            });
+
+            // Agregar clase active al seleccionado
+            if (rate === 'custom') {
+                options[3].classList.add('active');
+                document.getElementById('customRateWrapper').classList.add('show');
+                currentBankRate = parseFloat(document.getElementById('customBankRate').value);
+            } else {
+                document.getElementById('customRateWrapper').classList.remove('show');
+                currentBankRate = parseFloat(rate);
+                
+                // Activar el botón correcto
+                if (rate === 0.01) {
+                    options[0].classList.add('active');
+                } else if (rate === 0.5) {
+                    options[1].classList.add('active');
+                } else if (rate === 1.0) {
+                    options[2].classList.add('active');
+                }
+            }
+
+            document.getElementById('bankRate').value = currentBankRate;
+            calculate();
+        }
+
+        function calculate() {
+            // Obtener valores
+            const monthly = parseFloat(document.getElementById('monthly').value);
+            let bankRate = currentBankRate / 100;
+            const iulRate = parseFloat(document.getElementById('iulRate').value) / 100;
+            const years = parseInt(document.getElementById('years').value);
+
+            // Si custom está activo, usar ese valor
+            if (document.getElementById('customRateWrapper').classList.contains('show')) {
+                bankRate = parseFloat(document.getElementById('customBankRate').value) / 100;
+            }
+
+            // Validación
+            if (isNaN(monthly) || isNaN(bankRate) || isNaN(iulRate) || isNaN(years)) {
+                return;
+            }
+
+            // Cálculo del futuro valor con aportes mensuales
+            const months = years * 12;
+            const totalContributed = monthly * months;
+
+            // Banco
+            const bankMonthlyRate = bankRate / 12;
+            let bankTotal;
+            if (bankMonthlyRate === 0 || bankMonthlyRate < 0.00001) {
+                bankTotal = totalContributed;
+            } else {
+                bankTotal = monthly * (Math.pow(1 + bankMonthlyRate, months) - 1) / bankMonthlyRate;
+            }
+
+            // IUL
+            const iulMonthlyRate = iulRate / 12;
+            const iulTotal = monthly * (Math.pow(1 + iulMonthlyRate, months) - 1) / iulMonthlyRate;
+
+            // Diferencia (GAP)
+            const gap = iulTotal - bankTotal;
+
+            // Intereses ganados
+            const bankInterest = bankTotal - totalContributed;
+            const iulGain = iulTotal - totalContributed;
+
+            // Actualizar resultados
+            document.getElementById('bankTotal').textContent = formatCurrency(bankTotal);
+            document.getElementById('iulTotal').textContent = formatCurrency(iulTotal);
+            document.getElementById('gapAmount').textContent = formatCurrency(gap);
+            document.getElementById('gapWarning').textContent = formatCurrency(gap);
+
+            // Actualizar display de tasa del banco
+            const displayRate = document.getElementById('customRateWrapper').classList.contains('show') 
+                ? parseFloat(document.getElementById('customBankRate').value).toFixed(2)
+                : (bankRate * 100).toFixed(2);
+            document.getElementById('bankRateDisplay').textContent = displayRate;
+
+            // Actualizar barras del gráfico
+            const maxValue = Math.max(bankTotal, iulTotal);
+            const bankHeight = (bankTotal / maxValue) * 100;
+            const iulHeight = (iulTotal / maxValue) * 100;
+
+            document.getElementById('bankBar').style.height = bankHeight + '%';
+            document.getElementById('iulBar').style.height = iulHeight + '%';
+            document.getElementById('bankBarValue').textContent = formatCurrency(bankTotal);
+            document.getElementById('iulBarValue').textContent = formatCurrency(iulTotal);
+
+            // Actualizar desglose
+            document.getElementById('yearsDisplay').textContent = years;
+            document.getElementById('yearsText').textContent = years;
+            document.getElementById('totalContributed').textContent = formatCurrency(totalContributed);
+            document.getElementById('bankInterest').textContent = formatCurrency(bankInterest);
+            document.getElementById('iulGain').textContent = formatCurrency(iulGain);
+            document.getElementById('pureDiff').textContent = formatCurrency(gap);
+
+            // Mostrar resultados
+            document.getElementById('results').classList.add('show');
+        }
+
+        // Event listeners
+        document.getElementById('customBankRate').addEventListener('input', function() {
+            currentBankRate = parseFloat(this.value);
+            calculate();
+        });
+
+        document.getElementById('monthly').addEventListener('input', calculate);
+        document.getElementById('iulRate').addEventListener('input', calculate);
+        document.getElementById('years').addEventListener('input', calculate);
+
+        // Calcular al cargar
+        window.addEventListener('load', function() {
+            calculate();
+        });
+    </script>
+</body>
+</html>
